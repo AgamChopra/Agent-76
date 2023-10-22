@@ -17,7 +17,6 @@ void setup() {
 
 
 void movement(String& str){
-  Serial.print("..MOUSE MOVE..");
   idx = str.indexOf(',');
   mouse_x = str.substring(0, idx).toInt();
   mouse_y = str.substring(idx+1).toInt();
