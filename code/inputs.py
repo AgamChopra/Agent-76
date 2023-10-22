@@ -9,13 +9,10 @@ from frames import get_frame_chunk, cv2, torch
 from audio import get_audio_chunk
 
 
-def get_current_state(chunk_size=8, frame_size=500, device='cuda',
-                      window='Overwatch', audio_device=0):
+def get_current_state():
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        frame_task = executor.submit(get_frame_chunk(chunk_size, frame_size,
-                                                     device, window))
-        audio_task = executor.submit(get_audio_chunk(chunk_size, audio_device,
-                                                     device))
+        frame_task = executor.submit(get_frame_chunk)
+        audio_task = executor.submit(get_audio_chunk)
 
     frame_chunk = frame_task.result()
     audio_chunk = audio_task.result()
@@ -25,8 +22,7 @@ def get_current_state(chunk_size=8, frame_size=500, device='cuda',
 
 def test():
     while (True):
-        chunk = 8
-        frame_chunk, audio_chunk = get_current_state(chunk_size=chunk)
+        frame_chunk, audio_chunk = get_current_state()
         frame_chunk = frame_chunk.detach().cpu()
         audio_chunk = audio_chunk.detach().cpu()
 
