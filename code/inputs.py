@@ -5,14 +5,15 @@ Created on October 2023
 @website: https://agamchopra.github.io/
 """
 import concurrent.futures
+
 from frames import get_frame_chunk, cv2, torch
 from audio import get_audio_chunk
 
 
-def get_current_state():
+def get_frame_audio_chunks(chunk_size=8):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        frame_task = executor.submit(get_frame_chunk)
-        audio_task = executor.submit(get_audio_chunk)
+        frame_task = executor.submit(get_frame_chunk, chunk_size)
+        audio_task = executor.submit(get_audio_chunk, chunk_size)
 
     frame_chunk = frame_task.result()
     audio_chunk = audio_task.result()
@@ -20,11 +21,17 @@ def get_current_state():
     return frame_chunk, audio_chunk
 
 
+def get_current_state(chunk_size=8):
+    frame_chunk, audio_chunk = get_frame_audio_chunks(chunk_size)
+    assert frame_chunk.shape[0] == audio_chunk.shape[0], "chunk size mismatch"
+    return (frame_chunk, audio_chunk)
+
+
 def test():
     while (True):
-        frame_chunk, audio_chunk = get_current_state()
-        frame_chunk = frame_chunk.detach().cpu()
-        audio_chunk = audio_chunk.detach().cpu()
+        data_chunk = get_current_state(8)
+        frame_chunk = data_chunk[0].detach().cpu()
+        audio_chunk = data_chunk[1].detach().cpu()
 
         print(frame_chunk.shape, audio_chunk.shape)
 

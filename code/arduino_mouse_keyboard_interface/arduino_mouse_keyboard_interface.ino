@@ -45,7 +45,6 @@ void loop() {
     String msg = Serial.readStringUntil('\n');
     msg_i = 0;
     ix = 0;
-    delay(1000);
     while (ix < NUM_COMMANDS) {
       idx = msg.indexOf(' ');
       cmd = msg.substring(0, idx);
@@ -55,4 +54,3 @@ void loop() {
     }
   }
 }
-// 1000,1000 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
