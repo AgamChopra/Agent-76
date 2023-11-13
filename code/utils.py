@@ -5,6 +5,7 @@ Created on October 2023
 @website: https://agamchopra.github.io/
 """
 import torch
+from torchvision.io import read_image, ImageReadMode
 
 
 class Memory():
@@ -40,6 +41,38 @@ def reshape_audio_signal(raw_signal):
     return formatted_signal
 
 
+def load_referance_frames(path='R:/git projects/Agent-76/assets/reward_refrance_images/'):
+    ref1, ref2 = read_image(
+        path+'r1.png', mode=ImageReadMode.RGB), read_image(
+            path+'r2.png', mode=ImageReadMode.RGB)
+    return torch.flip(ref1, (0,)).to(dtype=torch.float), torch.flip(
+        ref2, (0,)).to(dtype=torch.float)
+
+
+def get_rois(frame):
+    roi_good = frame[:, 226:286, 236:276]
+    roi_bad = frame[:, 426:480, 12:43]
+    return roi_good.mean(dim=0), roi_bad.mean(dim=0)
+
+
 ######
-def get_reward(state):
-    return
+class Reward():
+    def __init__(self):
+        super(Reward, self).__init__()
+
+    def get_reward(state):
+        return
+
+
+if __name__ == '__main__':
+    import cv2
+
+    a, b = load_referance_frames()
+    print(a.shape, b.shape)
+    a, _ = get_rois(a)
+
+    while(True):
+        cv2.imshow('Bot View', a.numpy().astype(dtype='uint8'))
+        if cv2.waitKey(100) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            break

@@ -17,39 +17,36 @@ def normalize(x, mode='min-max', epsilon=1E-9):
         return (x - x.mean()) / (torch.std(x) + epsilon)
 
 
-class Module_1(nn.Module):
+class Block(nn.Module):
     def __init__(self, ic, hc, oc, norm=nn.InstanceNorm3d):
-        super(Module_1, self).__init__()
+        super(Block, self).__init__()
         self.layer = nn.Sequential(nn.Conv3d(
             in_channels=ic, out_channels=hc, kernel_size=3),
-            nn.ReLU(), norm(hc))
-
-        self.out_block = nn.Sequential(nn.Conv3d(
+            nn.ReLU(), norm(hc), nn.Conv3d(
             in_channels=hc, out_channels=oc, kernel_size=2),
             nn.ReLU(), norm(oc))
 
     def forward(self, x):
         y = self.layer(x)
-        y = self.out_block(y)
         return y
 
 
 class Actor(nn.Module):
     def __init__(self, norm=nn.InstanceNorm3d):
         super(Actor, self).__init__()
-        self.l1 = nn.Sequential(Module_1(3, 16, 16, norm), nn.Conv3d(
+        self.l1 = nn.Sequential(Block(3, 16, 16, norm), nn.Conv3d(
             in_channels=16, out_channels=16, kernel_size=2, stride=2),
             nn.ReLU(), norm(16))
-        self.l2 = nn.Sequential(Module_1(16, 32, 32, norm), nn.Conv3d(
+        self.l2 = nn.Sequential(Block(16, 32, 32, norm), nn.Conv3d(
             in_channels=32, out_channels=32, kernel_size=2, stride=2),
             nn.ReLU(), norm(32))
-        self.l3 = nn.Sequential(Module_1(32, 64, 64, norm), nn.Conv3d(
+        self.l3 = nn.Sequential(Block(32, 64, 64, norm), nn.Conv3d(
             in_channels=64, out_channels=64, kernel_size=2, stride=2),
             nn.ReLU(), norm(64))
-        self.l4 = nn.Sequential(Module_1(65, 128, 128, norm), nn.Conv3d(
+        self.l4 = nn.Sequential(Block(65, 128, 128, norm), nn.Conv3d(
             in_channels=128, out_channels=128, kernel_size=2, stride=2),
             nn.ReLU(), norm(128))
-        self.l5 = nn.Sequential(Module_1(128, 256, 256, norm), nn.Conv3d(
+        self.l5 = nn.Sequential(Block(128, 256, 256, norm), nn.Conv3d(
             in_channels=256, out_channels=512, kernel_size=2),
             nn.ReLU())
         self.out = nn.Conv3d(in_channels=512, out_channels=17, kernel_size=1)
@@ -70,19 +67,19 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     def __init__(self, norm=nn.InstanceNorm3d):
         super(Critic, self).__init__()
-        self.l1 = nn.Sequential(Module_1(3, 16, 16, norm), nn.Conv3d(
+        self.l1 = nn.Sequential(Block(3, 16, 16, norm), nn.Conv3d(
             in_channels=16, out_channels=16, kernel_size=2, stride=2),
             nn.ReLU(), norm(16))
-        self.l2 = nn.Sequential(Module_1(16, 32, 32, norm), nn.Conv3d(
+        self.l2 = nn.Sequential(Block(16, 32, 32, norm), nn.Conv3d(
             in_channels=32, out_channels=32, kernel_size=2, stride=2),
             nn.ReLU(), norm(32))
-        self.l3 = nn.Sequential(Module_1(32, 64, 64, norm), nn.Conv3d(
+        self.l3 = nn.Sequential(Block(32, 64, 64, norm), nn.Conv3d(
             in_channels=64, out_channels=64, kernel_size=2, stride=2),
             nn.ReLU(), norm(64))
-        self.l4 = nn.Sequential(Module_1(67, 128, 128, norm), nn.Conv3d(
+        self.l4 = nn.Sequential(Block(67, 128, 128, norm), nn.Conv3d(
             in_channels=128, out_channels=128, kernel_size=2, stride=2),
             nn.ReLU(), norm(128))
-        self.l5 = nn.Sequential(Module_1(128, 256, 256, norm), nn.Conv3d(
+        self.l5 = nn.Sequential(Block(128, 256, 256, norm), nn.Conv3d(
             in_channels=256, out_channels=512, kernel_size=2),
             nn.ReLU())
         self.out = nn.Conv3d(in_channels=512, out_channels=1, kernel_size=1)
