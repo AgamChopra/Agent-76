@@ -65,7 +65,7 @@ def test():
     list_audio_devices()
 
     chunk = 8
-    frames = get_audio_chunk(chunk, record_path='D:/audio_chunk.wav')
+    frames = get_audio_chunk(chunk, record_path='R:/audio_chunk_sample.wav')
     print(frames.shape)
     print(frames.min(), frames.mean(), frames.max())
 
