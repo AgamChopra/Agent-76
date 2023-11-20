@@ -22,7 +22,7 @@ def list_audio_devices():
                   {device_info['maxOutputChannels']} output")
 
 
-def get_audio_chunk(chunk_size=8, audio_device=21, device='cuda',
+def get_audio_chunk(chunk_size=8, device='cuda', audio_device=21,
                     channels=2, window_framerate=244, rate=48000,
                     buffer_chunk=1024, record_path=None, use_time=False):
     if use_time:

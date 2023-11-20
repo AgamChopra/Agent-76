@@ -6,6 +6,8 @@ Created on October 2023
 """
 import torch
 from torch import nn
+# Modify code to input memory buffer as batch of states, then use mlp to
+# reduce dimensionality from 100(buffer size) to 1 for Actor ?and? ?Critic?...
 
 
 def normalize(x, mode='min-max', epsilon=1E-9):
@@ -32,8 +34,9 @@ class Block(nn.Module):
 
 
 class Actor(nn.Module):
-    def __init__(self, norm=nn.InstanceNorm3d):
+    def __init__(self, norm=nn.InstanceNorm3d, buffer_size=10):
         super(Actor, self).__init__()
+        self.buffer_size = buffer_size
         self.l1 = nn.Sequential(Block(3, 16, 16, norm), nn.Conv3d(
             in_channels=16, out_channels=16, kernel_size=2, stride=2),
             nn.ReLU(), norm(16))
@@ -49,18 +52,26 @@ class Actor(nn.Module):
         self.l5 = nn.Sequential(Block(128, 256, 256, norm), nn.Conv3d(
             in_channels=256, out_channels=512, kernel_size=2),
             nn.ReLU())
-        self.out = nn.Conv3d(in_channels=512, out_channels=17, kernel_size=1)
+        self.out = nn.Sequential(
+            nn.Conv3d(in_channels=512, out_channels=17, kernel_size=1),
+            nn.ReLU())
         self.mlp = nn.Sequential(
             nn.Linear(24576, 2197), nn.ReLU(), nn.InstanceNorm1d(2197))
+        self.reduce = nn.Sequential(nn.InstanceNorm1d(17 * buffer_size, 64),
+                                    nn.Linear(17 * buffer_size, 64), nn.ReLU(),
+                                    nn.InstanceNorm1d(64),
+                                    nn.Linear(64, 17))
 
     def forward(self, x_frames, x_audio):
         y = self.l1(x_frames)
         y = self.l2(y)
         y = self.l3(y)
         y = self.l4(
-            torch.cat((y, self.mlp(x_audio).view(1, 1, 13, 13, 13)), dim=1))
+            torch.cat((y, self.mlp(x_audio).view(
+                self.buffer_size, 1, 13, 13, 13)), dim=1))
         y = self.l5(y)
-        y = self.out(y)
+        y = self.out(y).view(1, 17 * self.buffer_size)
+        y = self.reduce(y)
         return y.view((17))
 
 
@@ -104,8 +115,8 @@ class Critic(nn.Module):
 
 
 def test(device='cpu'):
-    frames = torch.rand((1, 3, 128, 128, 128), device=device)
-    audio = torch.rand((1, 24576), device=device)
+    frames = torch.rand((10, 3, 128, 128, 128), device=device)
+    audio = torch.rand((10, 24576), device=device)
     reward = torch.rand(1, device=device)
 
     policy = Actor().to(device)
@@ -113,7 +124,7 @@ def test(device='cpu'):
 
     action = policy(frames, audio)
     value = value_function(
-        frames, audio, action.view(1, 17), reward.view(1, 1))
+        frames[9:10], audio[9:10], action.view(1, 17), reward.view(1, 1))
 
     print('.....')
     print(frames.shape, audio.shape)
