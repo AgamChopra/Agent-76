@@ -5,6 +5,8 @@ Created on October 2023
 @website: https://agamchopra.github.io/
 """
 import serial.tools.list_ports
+from torch import flatten
+from numpy import where, sin, tanh
 
 
 class Relay():
@@ -26,7 +28,6 @@ class Relay():
         for p in self.portsList:
             if p.startswith("COM" + str(port_number)):
                 self.portVar = "COM" + str(port_number)
-
         self.serialInst.baudrate = self.channel
         self.serialInst.port = self.portVar
         self.serialInst.open()
@@ -34,8 +35,19 @@ class Relay():
     def free_port(self):
         self.serialInst.close()
 
-    def send_action(self, action='0,0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0'):
+    def encode_action(self, action):
+        act = action.cpu().numpy()
+        act[:2] = 1000 * (sin(act[:2]) - 0.5)
+        act[2:] = where(tanh(act[2:]) > 0, 1, 0)
+        command = list(map(str, act.astype(int)))
+        cmd = command[0] + ',' + command[1]
+        cmd = cmd + ' ' + ' '.join(command[2:])
+        return cmd
+
+    def __call__(self, action):
+        action = self.encode_action(flatten(action.detach()))
         self.serialInst.write(action.encode('utf-8'))
+        print(action)
 
 
 def test():
@@ -45,7 +57,7 @@ def test():
 
     while (True):
         command = input("Command: ")
-        relay.send_action(command)
+        relay(command)
 
         if command == 'p':
             relay.free_port()

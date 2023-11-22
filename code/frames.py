@@ -40,7 +40,7 @@ def window_capture(windowname=None):
     return img
 
 
-def get_frame_chunk(chunk_size=8, rescale_size=512, device='cuda',
+def get_frame_chunk(chunk_size=8, device='cuda', rescale_size=512,
                     window='Overwatch'):
     frame_chunk = torch.zeros(
         (chunk_size, 3, rescale_size, rescale_size)).to(device)

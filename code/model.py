@@ -37,23 +37,23 @@ class Actor(nn.Module):
     def __init__(self, norm=nn.InstanceNorm3d, buffer_size=10):
         super(Actor, self).__init__()
         self.buffer_size = buffer_size
-        self.l1 = nn.Sequential(Block(3, 16, 16, norm), nn.Conv3d(
+        self.l1 = nn.Sequential(Block(3, 8, 8, norm), nn.Conv3d(
+            in_channels=8, out_channels=8, kernel_size=2, stride=2),
+            nn.ReLU(), norm(8))
+        self.l2 = nn.Sequential(Block(8, 16, 16, norm), nn.Conv3d(
             in_channels=16, out_channels=16, kernel_size=2, stride=2),
             nn.ReLU(), norm(16))
-        self.l2 = nn.Sequential(Block(16, 32, 32, norm), nn.Conv3d(
+        self.l3 = nn.Sequential(Block(16, 32, 32, norm), nn.Conv3d(
             in_channels=32, out_channels=32, kernel_size=2, stride=2),
             nn.ReLU(), norm(32))
-        self.l3 = nn.Sequential(Block(32, 64, 64, norm), nn.Conv3d(
+        self.l4 = nn.Sequential(Block(33, 64, 64, norm), nn.Conv3d(
             in_channels=64, out_channels=64, kernel_size=2, stride=2),
             nn.ReLU(), norm(64))
-        self.l4 = nn.Sequential(Block(65, 128, 128, norm), nn.Conv3d(
-            in_channels=128, out_channels=128, kernel_size=2, stride=2),
-            nn.ReLU(), norm(128))
-        self.l5 = nn.Sequential(Block(128, 256, 256, norm), nn.Conv3d(
-            in_channels=256, out_channels=512, kernel_size=2),
+        self.l5 = nn.Sequential(Block(64, 128, 128, norm), nn.Conv3d(
+            in_channels=128, out_channels=128, kernel_size=2),
             nn.ReLU())
         self.out = nn.Sequential(
-            nn.Conv3d(in_channels=512, out_channels=17, kernel_size=1),
+            nn.Conv3d(in_channels=128, out_channels=17, kernel_size=1),
             nn.ReLU())
         self.mlp = nn.Sequential(
             nn.Linear(24576, 2197), nn.ReLU(), nn.InstanceNorm1d(2197))
@@ -78,22 +78,22 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     def __init__(self, norm=nn.InstanceNorm3d):
         super(Critic, self).__init__()
-        self.l1 = nn.Sequential(Block(3, 16, 16, norm), nn.Conv3d(
+        self.l1 = nn.Sequential(Block(3, 4, 4, norm), nn.Conv3d(
+            in_channels=4, out_channels=4, kernel_size=2, stride=2),
+            nn.ReLU(), norm(4))
+        self.l2 = nn.Sequential(Block(4, 8, 8, norm), nn.Conv3d(
+            in_channels=8, out_channels=8, kernel_size=2, stride=2),
+            nn.ReLU(), norm(8))
+        self.l3 = nn.Sequential(Block(8, 16, 16, norm), nn.Conv3d(
             in_channels=16, out_channels=16, kernel_size=2, stride=2),
             nn.ReLU(), norm(16))
-        self.l2 = nn.Sequential(Block(16, 32, 32, norm), nn.Conv3d(
+        self.l4 = nn.Sequential(Block(19, 32, 32, norm), nn.Conv3d(
             in_channels=32, out_channels=32, kernel_size=2, stride=2),
             nn.ReLU(), norm(32))
-        self.l3 = nn.Sequential(Block(32, 64, 64, norm), nn.Conv3d(
-            in_channels=64, out_channels=64, kernel_size=2, stride=2),
-            nn.ReLU(), norm(64))
-        self.l4 = nn.Sequential(Block(67, 128, 128, norm), nn.Conv3d(
-            in_channels=128, out_channels=128, kernel_size=2, stride=2),
-            nn.ReLU(), norm(128))
-        self.l5 = nn.Sequential(Block(128, 256, 256, norm), nn.Conv3d(
-            in_channels=256, out_channels=512, kernel_size=2),
+        self.l5 = nn.Sequential(Block(32, 64, 64, norm), nn.Conv3d(
+            in_channels=64, out_channels=64, kernel_size=2),
             nn.ReLU())
-        self.out = nn.Conv3d(in_channels=512, out_channels=1, kernel_size=1)
+        self.out = nn.Conv3d(in_channels=64, out_channels=1, kernel_size=1)
         self.mlp_aud = nn.Sequential(
             nn.Linear(24576, 2197), nn.ReLU(), nn.InstanceNorm1d(2197))
         self.mlp_act = nn.Sequential(

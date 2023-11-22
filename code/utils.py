@@ -13,31 +13,38 @@ class Memory():
     def __init__(self, buffer_size=10, device='cpu'):
         super(Memory, self).__init__()
         self.buffer_frame = torch.zeros(
-            (buffer_size, 3, 128, 128, 128), device=device)
-        self.buffer_audio = torch.zeros((buffer_size, 24576), device=device)
+            (buffer_size, 8, 3, 512, 512), device=device)
+        self.buffer_audio = torch.zeros((buffer_size, 8, 3072), device=device)
         self.buffer_size = buffer_size
 
     def write(self, frame, audio):
-        self.buffer_frame = torch.cat((frame, self.buffer_frame[:-1]), dim=0)
-        self.buffer_audio = torch.cat((audio, self.buffer_audio[:-1]), dim=0)
+        self.buffer_frame = torch.cat((frame[None, ...],
+                                       self.buffer_frame[:-1]), dim=0)
+        self.buffer_audio = torch.cat((audio[None, ...],
+                                       self.buffer_audio[:-1]), dim=0)
 
     def read(self, idx=0):
-        return (self.buffer_frame[idx:idx+1], self.buffer_audio[idx:idx+1])
+        return (self.buffer_frame[idx], self.buffer_audio[idx])
 
     def __call__(self):
         return (self.buffer_frame, self.buffer_audio)
 
 
 def reshape_spatial_signal(raw_signal):
-    assert raw_signal.shape == (8, 3, 512, 512), "Video signal shape mismatch"
-    raw_signal = torch.permute(raw_signal, (1, 0, 2, 3))
-    formatted_signal = raw_signal.view(1, 3, 128, 128, 128)
+    try:
+        raw_signal = torch.permute(raw_signal, (1, 0, 2, 3))
+        formatted_signal = raw_signal.reshape(1, 3, 128, 128, 128)
+    except Exception:
+        raw_signal = torch.permute(raw_signal, (0, 2, 1, 3, 4))
+        formatted_signal = raw_signal.reshape(10, 3, 128, 128, 128)
     return formatted_signal
 
 
 def reshape_audio_signal(raw_signal):
-    assert raw_signal.shape == (8, 3072), "Audio signal shape mismatch"
-    formatted_signal = raw_signal.view(1, 24576)
+    try:
+        formatted_signal = raw_signal.view(1, 24576)
+    except Exception:
+        formatted_signal = raw_signal.view(10, 24576)
     return formatted_signal
 
 
