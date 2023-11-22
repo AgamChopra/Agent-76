@@ -52,5 +52,6 @@ void loop() {
       command(cmd, ix);
       ix++;
     }
+    delayMicroseconds(0.5);
   }
 }

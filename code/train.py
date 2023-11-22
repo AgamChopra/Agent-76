@@ -26,7 +26,7 @@ def train(path, lr=1E-2, beta1=0.5, beta2=0.999, discount=0.05):
     relay.activate_port(input('Port #: '))
 
     memory_buffer = Memory(device=device)
-    reward_function = Reward(device=device)
+    reward_function = Reward(boost=10, bias=[0.2, 0.8], device=device)
     # end_condition = Terminate(device=device)
 
     policy = Actor().to(device)
@@ -113,8 +113,8 @@ def train(path, lr=1E-2, beta1=0.5, beta2=0.999, discount=0.05):
 
         # propogate error(some function of -expected_reward), update policy
         real_reward = reward_function(memory_buffer.read(9)[0])
-        error = - (torch.flatten(expected_reward).mean() +
-                   discount * torch.flatten(real_reward).mean())
+        error = 8 - (torch.flatten(expected_reward).mean() +
+                     discount * torch.flatten(real_reward).mean())
         error.backward()
         policy_optimizer.step()
         print(real_reward, expected_reward)

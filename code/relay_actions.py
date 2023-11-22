@@ -7,6 +7,7 @@ Created on October 2023
 import serial.tools.list_ports
 from torch import flatten
 from numpy import where, sin, tanh
+from time import sleep
 
 
 class Relay():
@@ -46,8 +47,10 @@ class Relay():
 
     def __call__(self, action):
         action = self.encode_action(flatten(action.detach()))
-        self.serialInst.write(action.encode('utf-8'))
         print(action)
+        self.serialInst.write(action.encode('utf-8'))
+        sleep(0.1)
+        print(self.serialInst.read_all())
 
 
 def test():
